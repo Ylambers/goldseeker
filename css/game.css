@@ -1,0 +1,9 @@
+/* ================== */
+/* HEADER */
+.game-container{
+    height: 309px;
+    background-image: url("../media/img/container-header2.jpg");
+    background-repeat: repeat-x;
+}
+
+
