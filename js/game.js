@@ -8,7 +8,7 @@ var gameCanvas;
 var gameCTX;
 var game;
 var gameObjects = [];
-
+var user;
 
 /*
 *
@@ -27,8 +27,11 @@ $(document).ready(function(){
     gameCTX = gameCanvas.getContext("2d");
 
     game = new Game();
-
     game.draw(0);
+
+
+    user = new User();
+
 
     // window.requestAnimationFrame(function(time){
     //
@@ -47,6 +50,8 @@ class User{
 
     updateScore(score){
         this.score += score;
+        $('#score_player1').text(user.score);
+
     }
 }
 
@@ -170,7 +175,7 @@ class Hook{
           If statement jungle om de hook de jusite richtign op te laten gaan
 
        */
-        if(keysPressed[' ']){ // als de spatie is ingedrukt
+        if(keysPressed['x']){ // als de spatie is ingedrukt
             if(this.length > this.maxLineLength-this.stepSize) { // de line gaat terug als de max van 700 is berijkt anders gaat hij door
                 this.length = 700;
                 this.up = true;
@@ -219,21 +224,19 @@ class Hook{
      */
     checkCollision(left, top){
 
-        this.user = new User();
+
 
         for(var i=0;i<gameObjects.length; i++){
             var go = gameObjects[i];
             if( left > go.left && left < go.left + go.width &&
                 top > go.top && top < go.top + go.height
                 && go.taken === false){
-                // go.color = "#FF0000";
                 this.tookObjects.push(go);
 
-
                 gameObjects[i].taken = true;
-                this.user.updateScore(gameObjects[i].value);
+                user.updateScore(gameObjects[i].value);
 
-                console.log(this.user.showScore());
+                console.log(user.showScore());
             }
         }
     }
@@ -245,3 +248,6 @@ class Hook{
 function clear(){
     gameCTX.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 }
+
+
+
