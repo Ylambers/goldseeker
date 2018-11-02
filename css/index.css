@@ -4,5 +4,11 @@
 }
 
 body{
+    /*background-image: url('../media/img/background.jpg');*/
+
+}
+
+#game{
     background: #804422;
+
 }

@@ -28,6 +28,32 @@ $(document).ready(function(){
     gameCTX = gameCanvas.getContext("2d");
 
     game = new Game();
+
+    var user1 = new User();
+    user1.playerNumber = 1;
+    user1.leftButton = "a";
+    user1.downButton = "s";
+    user1.rightButton = "d";
+
+    var user2 = new User();
+    user2.playerNumber = 2;
+    user2.leftButton = "ArrowLeft";
+    user2.downButton = "ArrowDown";
+    user2.rightButton = "ArrowRight";
+
+    var user3 = new User();
+    user3.playerNumber = 3;
+    user3.leftButton = "f";
+    user3.downButton = "g";
+    user3.rightButton = "h";
+
+
+    game.addUser(user1);
+    game.addUser(user2);
+    game.addUser(user3);
+
+
+
     game.draw(0);
 
     // user = new User();
@@ -42,9 +68,10 @@ class User{
 
     constructor() {
         this.score = 0;
+        this.playerNumber = 1;
         this.hook = new Hook(this);
 
-        this.element = $("h1");
+        this.element = document.createElement("h1");
         this.element.innerText = 0;
 
 
@@ -52,11 +79,11 @@ class User{
         this.downButton = "s";
         this.rightButton = "d";
 
-        $("#players").append(this.element);
+        $("#players").append($(this.element));
 
-        var img = $('img');
-        img.src = "";
-        $("#playerView").append(img);
+        // var img = $('img');
+        // img.src = "";
+        // $("#playerView").append(img);
 
 
         // document.getElementById("players").appendChild(this.element);
@@ -69,7 +96,7 @@ class User{
     updateScore(score){
         // console.log(this);
         this.score += score;
-        this.element.text(this.score);
+        $(this.element).text(this.score);
 
     }
 }
@@ -89,7 +116,7 @@ class Game{
         this.totalPointsDiv = document.getElementById("total");
 
         var go;
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 1; i++) {
             go = new GameObject();
                 go.left = Math.floor(Math.random() * 1160);
                 go.top = Math.floor(Math.random() * 660)+ 100;
@@ -97,21 +124,13 @@ class Game{
             gameObjects.push(go);
         }
 
-        var user1 = new User();
-            user1.leftButton = "a";
-            user1.downButton = "s";
-            user1.rightButton = "d";
 
-        var user2 = new User();
-            user2.leftButton = "ArrowLeft";
-            user2.downButton = "ArrowDown";
-            user2.rightButton = "ArrowRight";
-
-        this.users = [user1, user2];
-
-        console.log(this.users);
+        this.users = [];
     }
 
+    addUser(user){
+        this.users.push(user);
+    }
     /*
         Tekent de lijn
         Verwijdert game objects
@@ -125,6 +144,18 @@ class Game{
             var go = gameObjects[i];
             this.totalPoints += go.value;
             go.draw(time); // tekent een gameobject
+
+        }
+
+        if(this.totalPoints === 0){
+            var winner = this.users[0];
+            for (let i = 0; i < this.users.length; i++) {
+                if(winner.score < this.users[i].score){
+                    winner = this.users[i];
+                }
+            }
+            alert('Game over!\n Player ' + winner.playerNumber + " wins");
+            return;
         }
 
         // console.log(this.oldTime);
