@@ -328,7 +328,7 @@ class Hook{
         }
 
         /*
-        *                                                                                       DRAW THE HOOK IN THE CANVAS
+        *                                                                                       Tekent de haak in  de canvas
         * */
         gameCTX.drawImage(this.image, this.hookPosition-10, 5, 20, this.length);
         // gameCTX.beginPath();
@@ -365,7 +365,7 @@ class Hook{
 }
 
 /*
-      *                                                                                       CLEAN THE CANVAS
+      *                                                                                       Reset de canvas
       * */
 function clear(){
     gameCTX.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
