@@ -9,7 +9,6 @@ var gameCanvas;
 var gameCTX;
 var game;
 var gameObjects = [];
-// var user;
 
 /*
 *
@@ -17,6 +16,9 @@ var gameObjects = [];
 * */
 
 $(document).ready(function(){
+    /**
+     *  Registreerd de key input
+     */
     window.onkeydown = function (e){
         keysPressed[e.key] = true;
     };
@@ -24,48 +26,54 @@ $(document).ready(function(){
         keysPressed[e.key] = false;
     };
 
+    /**
+     *  Bouwt een canvas
+     */
     gameCanvas = document.getElementById("game");
     gameCTX = gameCanvas.getContext("2d");
 
     game = new Game();
 
+
+    /**
+     * Maakt spelers aan
+     */
     var user1 = new User();
     user1.playerNumber = 1;
     user1.leftButton = "a";
     user1.downButton = "s";
     user1.rightButton = "d";
+    game.addUser(user1);
 
     var user2 = new User();
     user2.playerNumber = 2;
     user2.leftButton = "ArrowLeft";
     user2.downButton = "ArrowDown";
     user2.rightButton = "ArrowRight";
-
-    var user3 = new User();
-    user3.playerNumber = 3;
-    user3.leftButton = "f";
-    user3.downButton = "g";
-    user3.rightButton = "h";
-
-
-    game.addUser(user1);
     game.addUser(user2);
-    game.addUser(user3);
+
+    /**
+     * derde gebruiker
+     */
+    // var user3 = new User();
+    // user3.playerNumber = 3;
+    // user3.leftButton = "f";
+    // user3.downButton = "g";
+    // user3.rightButton = "h";
+    // game.addUser(user3);
+
 
 
 
     game.draw(0);
-
-    // user = new User();
-
-
-    // window.requestAnimationFrame(function(time){
-    //
-    // });
 });
 
 class User{
 
+
+    /**
+     * Default waarden user
+     */
     constructor() {
         this.score = 0;
         this.playerNumber = 1;
@@ -81,20 +89,12 @@ class User{
 
         $("#players").append($(this.element));
 
-        // var img = $('img');
-        // img.src = "";
-        // $("#playerView").append(img);
-
-
-        // document.getElementById("players").appendChild(this.element);
     }
 
-    showScore(){
-        return this.score;
-    }
-
+    /**
+     * Update een score voor  user
+     */
     updateScore(score){
-        // console.log(this);
         this.score += score;
         $(this.element).text(this.score);
 
@@ -115,6 +115,10 @@ class Game{
         this.totalPoints = 0;
         this.totalPointsDiv = document.getElementById("total");
 
+
+        /**
+         *  Zet random objecten neer in de canvas
+         */
         var go;
         for (let i = 0; i < 1; i++) {
             go = new GameObject();
@@ -137,6 +141,10 @@ class Game{
      */
     draw(time)
     {
+
+        /**
+         * Set total points voor de game, wanneer dit 0 berijkt is het game over
+         */
         clear(); // Reset de canvas
         this.totalPoints = 0;
         for(var i=0;i<gameObjects.length; i++) {
@@ -147,6 +155,9 @@ class Game{
 
         }
 
+        /**
+         * Check als de game gewonnen is
+         */
         if(this.totalPoints === 0){
             var winner = this.users[0];
             for (let i = 0; i < this.users.length; i++) {
@@ -158,7 +169,6 @@ class Game{
             return;
         }
 
-        // console.log(this.oldTime);
         for (let i = 0; i < this.users.length; i++) {
             this.users[i].hook.handle(time-this.oldTime);
         }
@@ -190,7 +200,6 @@ class GameObject{
         this.img = new Image();
         this.img.src = "media/img/copper.png";
 
-        this.color = "#ff9832";
         this.taken = false;
         this.value = 150 - this.width - this.height;
         this.id = 0;
@@ -198,8 +207,6 @@ class GameObject{
 
     draw(){
 
-        // gameCTX.fillStyle= this.color;
-        // gameCTX.fillRect(this.left,this.top,this.width,this.height);
         gameCTX.drawImage(this.img, this.left, this.top, this.width, this.height);
     }
 }
@@ -207,7 +214,7 @@ class GameObject{
 class Hook{
 
     /*
-    *
+    * Default waarden voor de hook
     * */
     constructor(user)
     {
@@ -216,13 +223,15 @@ class Hook{
         this.down = false;
         this.up = false;
         this.stepSize = 10;
-        this.time = 0;
         this.speed = this.maxLineLength / 2000; // anti lag berekening   : x aantal seconden 700/5000 * time
         this.tookObjects = [];
         this.hookPosition = 10;
         this.user = user;
     }
 
+    /**
+     * De tijd geeft mee hoe lang de hook er over doet om naar de bodem te komen, fps zie berekening speed
+     */
     handle(time){
         this.stepSize = time * this.speed; // Hook speed
         /*
@@ -264,10 +273,12 @@ class Hook{
                 if(this.tookObjects[i].top > this.length){
                     this.tookObjects[i].top = this.length;
                 }
-                // this.tookObjects[i].left = this.hookPosition;
             }
 
 
+            /**
+             * Verwijdert een blokje wanneer de lengte 0 is
+             */
             if(this.length <= 0){
                 this.up = false;
                 this.length = 0;
@@ -275,8 +286,6 @@ class Hook{
                 for(var i=0;i<this.tookObjects.length; i++){
                     if(!this.tookObjects[i]) continue;
 
-                    // this.tookObjects[i].top = this.length;
-                    // this.tookObjects[i].left = this.hookPosition;
                     this.user.updateScore(this.tookObjects[i].value);
 
 
@@ -285,11 +294,9 @@ class Hook{
 
                         if(gameObjects[j].id === this.tookObjects[i].id){
                             delete gameObjects[j];
-                            // gameObjects.splice(j,1);
                         }
                     }
 
-                    // this.tookObjects.splice(i,1);
                     delete this.tookObjects[i];
                 }
             }
@@ -299,7 +306,6 @@ class Hook{
         if(this.down){
             this.length += this.stepSize;
         }
-        // console.log(this.length);
 
         /*
         *                                                                                       DRAW THE HOOK IN THE CANVAS
@@ -310,9 +316,11 @@ class Hook{
         gameCTX.stroke();
 
 
+        /**
+         * Checkt voor een overlapping met de hook
+         */
         this.checkCollision(this.hookPosition, this.length); // CHECK IF ITS A COLLISION
 
-        // gameCTX.fillStyle = "";
     }
 
     /*
@@ -328,13 +336,7 @@ class Hook{
 
                 this.tookObjects.push(go);
 
-
-
                 gameObjects[i].taken = true;
-
-
-
-                // console.log(user.showScore());
             }
         }
     }
