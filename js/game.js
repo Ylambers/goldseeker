@@ -1,6 +1,7 @@
 /*
 * CONSTANTS
-*
+* https://www.spriters-resource.com/arcade/ms6/sheet/46760/
+* http://spite.github.io/
 * */
 
 var keysPressed = {}; // object waar alle input inkomt te staan
@@ -28,7 +29,6 @@ $(document).ready(function(){
 
     game = new Game();
     game.draw(0);
-
 
     user = new User();
 
@@ -67,14 +67,21 @@ class Game{
     constructor(){
         this.hook = new Hook();
         this.oldTime = 0;
-        var go = new GameObject();
+        this.totalPoints = 0;
+        this.totalPointsDiv = document.getElementById("total");
 
-        go.left = 195;
-        go.top = 600;
-        go.width = 10;
-        go.height = 10;
+        var go;
+        for (let i = 0; i < 30; i++) {
+            go = new GameObject();
+                go.left = Math.floor(Math.random() * 1160);
+                go.top = Math.floor(Math.random() * 660)+ 100;
+                go.width = 40;
+                go.height = 40;
+                go.id = new Date().getTime()+i;
+                go.value = Math.floor(Math.random() * 150)+ 50;
+            gameObjects.push(go);
+        }
 
-        gameObjects.push(go);
     }
 
     /*
@@ -84,27 +91,17 @@ class Game{
     draw(time)
     {
         clear(); // Reset de canvas
-
+        this.totalPoints = 0;
         for(var i=0;i<gameObjects.length; i++) {
+            if(!gameObjects[i]) continue;
             var go = gameObjects[i];
-            if(go.top < 10){
-                // Destroy object
-                // for(var i=0;i<this.hook.tookObjects.length; i++) {
-                //     //set score counter
-                //     if(this.hook.tookObjects[i] === go){
-                //         delete this.hook.tookObjects[i];
-                //     }
-                // }
-                // delete gameObjects[i];
-
-
-            }
+            this.totalPoints += go.value;
             go.draw(time); // tekent een gameobject
         }
 
         // console.log(this.oldTime);
         this.hook.handle(time-this.oldTime);
-
+        this.totalPointsDiv.innerHTML = this.totalPoints;
         /*
         Loop voor animatie
          */
@@ -125,9 +122,10 @@ class GameObject{
         this.top = 600;
         this.width = 10;
         this.height = 10;
-        this.color = "#0000FF";
+        this.color = "#ff9832";
         this.taken = false;
         this.value = 100;
+        this.id = 0;
     }
 
     draw(){
@@ -144,7 +142,7 @@ class Hook{
     * */
     constructor()
     {
-        this.maxLineLength = 700;
+        this.maxLineLength = 800;
         this.length = 0;
         this.down = false;
         this.up = false;
@@ -161,13 +159,13 @@ class Hook{
         /*
             controller voor de beweging van de hook
         * */
-        if(keysPressed['c']){
-            this.hookPosition += 1;
-        }else if(keysPressed['z'])
+        if(keysPressed['c']  && !keysPressed['x'] && !this.up){
+            this.hookPosition += this.stepSize;
+        }else if(keysPressed['z'] && !keysPressed['x'] && !this.up)
         {
             if(this.hookPosition >5)
             {
-                this.hookPosition -= 1;
+                this.hookPosition -= this.stepSize;
             }
         }
 
@@ -177,7 +175,7 @@ class Hook{
        */
         if(keysPressed['x']){ // als de spatie is ingedrukt
             if(this.length > this.maxLineLength-this.stepSize) { // de line gaat terug als de max van 700 is berijkt anders gaat hij door
-                this.length = 700;
+                this.length = this.maxLineLength;
                 this.up = true;
                 this.down = false;
             }else{
@@ -192,14 +190,39 @@ class Hook{
             this.length -= this.stepSize;
 
             for(var i=0;i<this.tookObjects.length; i++){
-                this.tookObjects[i].top = this.length;
+                if(!this.tookObjects[i]) continue;
+                if(this.tookObjects[i].top > this.length){
+                    this.tookObjects[i].top = this.length;
+                }
+                // this.tookObjects[i].left = this.hookPosition;
             }
 
 
             if(this.length <= 0){
                 this.up = false;
                 this.length = 0;
+
+                for(var i=0;i<this.tookObjects.length; i++){
+                    if(!this.tookObjects[i]) continue;
+
+                    // this.tookObjects[i].top = this.length;
+                    // this.tookObjects[i].left = this.hookPosition;
+                    user.updateScore(this.tookObjects[i].value);
+
+                    for(var j=0;j<gameObjects.length; j++) {
+                        if (!gameObjects[j]) continue;
+
+                        if(gameObjects[j].id === this.tookObjects[i].id){
+                            delete gameObjects[j];
+                            // gameObjects.splice(j,1);
+                        }
+                    }
+
+                    // this.tookObjects.splice(i,1);
+                    delete this.tookObjects[i];
+                }
             }
+
         }
         //Lijn naar beneden
         if(this.down){
@@ -214,7 +237,9 @@ class Hook{
         gameCTX.moveTo(this.hookPosition,5);
         gameCTX.lineTo(this.hookPosition, this.length);
         gameCTX.stroke();
-        this.checkCollision(200, this.length); // CHECK IF ITS A COLLISION
+
+
+        this.checkCollision(this.hookPosition, this.length); // CHECK IF ITS A COLLISION
 
         // gameCTX.fillStyle = "";
     }
@@ -223,20 +248,22 @@ class Hook{
         Als een object geraakt wordt, neemt de haak hem mee
      */
     checkCollision(left, top){
-
-
-
         for(var i=0;i<gameObjects.length; i++){
+            if(!gameObjects[i]) continue;
             var go = gameObjects[i];
             if( left > go.left && left < go.left + go.width &&
-                top > go.top && top < go.top + go.height
-                && go.taken === false){
+                top > go.top && top < go.top + go.height  &&
+                !go.taken){
+
                 this.tookObjects.push(go);
 
-                gameObjects[i].taken = true;
-                user.updateScore(gameObjects[i].value);
 
-                console.log(user.showScore());
+
+                gameObjects[i].taken = true;
+
+
+
+                // console.log(user.showScore());
             }
         }
     }
