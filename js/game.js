@@ -39,24 +39,24 @@ $(document).ready(function(){
      * Maakt spelers aan
      */
     var user1 = new User();
-    user1.playerNumber = 1;
-    user1.leftButton = "a";
-    user1.downButton = "s";
-    user1.rightButton = "d";
+        user1.setPlayerNumber(1);
+        user1.leftButton = "a";
+        user1.downButton = "s";
+        user1.rightButton = "d";
     game.addUser(user1);
 
     var user2 = new User();
-    user2.playerNumber = 2;
-    user2.leftButton = "ArrowLeft";
-    user2.downButton = "ArrowDown";
-    user2.rightButton = "ArrowRight";
+        user2.setPlayerNumber(2);
+        user2.leftButton = "ArrowLeft";
+        user2.downButton = "ArrowDown";
+        user2.rightButton = "ArrowRight";
     game.addUser(user2);
 
     /**
      * derde gebruiker
      */
     // var user3 = new User();
-    // user3.playerNumber = 3;
+    // user3.setPlayerNumber(3);
     // user3.leftButton = "f";
     // user3.downButton = "g";
     // user3.rightButton = "h";
@@ -88,15 +88,18 @@ class User{
         this.rightButton = "d";
 
         $("#players").append($(this.element));
-
     }
 
+    setPlayerNumber(nr){
+        this.playerNumber = nr;
+        this.updateScore(0);
+    }
     /**
      * Update een score voor  user
      */
     updateScore(score){
         this.score += score;
-        $(this.element).text(this.score);
+        $(this.element).text("Player "+this.playerNumber + ": " +this.score);
 
     }
 }
@@ -113,14 +116,14 @@ class Game{
     constructor(){
         this.oldTime = 0;
         this.totalPoints = 0;
-        this.totalPointsDiv = document.getElementById("total");
+        // this.totalPointsDiv = document.getElementById("total");
 
 
         /**
          *  Zet random objecten neer in de canvas
          */
         var go;
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 25; i++) {
             go = new GameObject();
                 go.left = Math.floor(Math.random() * 1160);
                 go.top = Math.floor(Math.random() * 660)+ 100;
@@ -155,6 +158,8 @@ class Game{
 
         }
 
+        // this.totalPointsDiv.innerHTML = this.totalPoints;
+
         /**
          * Check als de game gewonnen is
          */
@@ -173,7 +178,6 @@ class Game{
             this.users[i].hook.handle(time-this.oldTime);
         }
 
-        this.totalPointsDiv.innerHTML = this.totalPoints;
         /*
         Loop voor animatie
          */
@@ -192,16 +196,24 @@ class GameObject{
     constructor(){
         this.left = 200;
         this.top = 600;
-        this.width = Math.floor(Math.random() * 40) + 10;
+        this.width = Math.floor(Math.random() * 60) + 15;
         this.height = this.width;
         this.img = null;
-        if(this.width < 20){
-        }
         this.img = new Image();
-        this.img.src = "media/img/copper.png";
+
+        if(this.width < 25) {
+
+            this.img.src = "media/img/diamond.png";
+        }else if(this.width > 40){
+            this.img.src = "media/img/rock.png";
+
+        }else{
+            this.img.src = "media/img/copper.png";
+        }
+
 
         this.taken = false;
-        this.value = 150 - this.width - this.height;
+        this.value = 250 - ( this.width * 3 );
         this.id = 0;
     }
 
@@ -227,6 +239,12 @@ class Hook{
         this.tookObjects = [];
         this.hookPosition = 10;
         this.user = user;
+
+        this.image = new Image();
+        this.image.src = "media/img/rope.png";
+
+        this.arrow = $("<div class=\"fa fa-caret-down hook-position\"></div>");
+        $("#playerView").append(this.arrow);
     }
 
     /**
@@ -239,7 +257,9 @@ class Hook{
         * */
 
         if(keysPressed[this.user.rightButton]  && !keysPressed[this.user.downButton] && !this.up){
-            this.hookPosition += this.stepSize;
+            this.hookPosition += this.stepSize
+
+
         }else if(keysPressed[this.user.leftButton] && !keysPressed[this.user.downButton] && !this.up)
         {
             if(this.hookPosition >5)
@@ -310,11 +330,13 @@ class Hook{
         /*
         *                                                                                       DRAW THE HOOK IN THE CANVAS
         * */
-        gameCTX.beginPath();
-        gameCTX.moveTo(this.hookPosition,5);
-        gameCTX.lineTo(this.hookPosition, this.length);
-        gameCTX.stroke();
-
+        gameCTX.drawImage(this.image, this.hookPosition-10, 5, 20, this.length);
+        // gameCTX.beginPath();
+        // gameCTX.moveTo(this.hookPosition,5);
+        // gameCTX.lineTo(this.hookPosition, this.length);
+        // gameCTX.stroke();
+        this.arrow.css({left: this.hookPosition-3+"px"});
+        // this.arrow.left();
 
         /**
          * Checkt voor een overlapping met de hook
