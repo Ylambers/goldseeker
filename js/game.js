@@ -9,7 +9,7 @@ var gameCanvas;
 var gameCTX;
 var game;
 var gameObjects = [];
-var user;
+// var user;
 
 /*
 *
@@ -30,7 +30,7 @@ $(document).ready(function(){
     game = new Game();
     game.draw(0);
 
-    user = new User();
+    // user = new User();
 
 
     // window.requestAnimationFrame(function(time){
@@ -42,6 +42,24 @@ class User{
 
     constructor() {
         this.score = 0;
+        this.hook = new Hook(this);
+
+        this.element = $("h1");
+        this.element.innerText = 0;
+
+
+        this.leftButton = "a";
+        this.downButton = "s";
+        this.rightButton = "d";
+
+        $("#players").append(this.element);
+
+        var img = $('img');
+        img.src = "";
+        $("#playerView").append(img);
+
+
+        // document.getElementById("players").appendChild(this.element);
     }
 
     showScore(){
@@ -49,8 +67,9 @@ class User{
     }
 
     updateScore(score){
+        // console.log(this);
         this.score += score;
-        $('#score_player1').text(user.score);
+        this.element.text(this.score);
 
     }
 }
@@ -65,7 +84,6 @@ class User{
 
 class Game{
     constructor(){
-        this.hook = new Hook();
         this.oldTime = 0;
         this.totalPoints = 0;
         this.totalPointsDiv = document.getElementById("total");
@@ -75,13 +93,23 @@ class Game{
             go = new GameObject();
                 go.left = Math.floor(Math.random() * 1160);
                 go.top = Math.floor(Math.random() * 660)+ 100;
-                go.width = 40;
-                go.height = 40;
                 go.id = new Date().getTime()+i;
-                go.value = Math.floor(Math.random() * 150)+ 50;
             gameObjects.push(go);
         }
 
+        var user1 = new User();
+            user1.leftButton = "a";
+            user1.downButton = "s";
+            user1.rightButton = "d";
+
+        var user2 = new User();
+            user2.leftButton = "ArrowLeft";
+            user2.downButton = "ArrowDown";
+            user2.rightButton = "ArrowRight";
+
+        this.users = [user1, user2];
+
+        console.log(this.users);
     }
 
     /*
@@ -100,7 +128,10 @@ class Game{
         }
 
         // console.log(this.oldTime);
-        this.hook.handle(time-this.oldTime);
+        for (let i = 0; i < this.users.length; i++) {
+            this.users[i].hook.handle(time-this.oldTime);
+        }
+
         this.totalPointsDiv.innerHTML = this.totalPoints;
         /*
         Loop voor animatie
@@ -120,18 +151,25 @@ class GameObject{
     constructor(){
         this.left = 200;
         this.top = 600;
-        this.width = 10;
-        this.height = 10;
+        this.width = Math.floor(Math.random() * 40) + 10;
+        this.height = this.width;
+        this.img = null;
+        if(this.width < 20){
+        }
+        this.img = new Image();
+        this.img.src = "media/img/copper.png";
+
         this.color = "#ff9832";
         this.taken = false;
-        this.value = 100;
+        this.value = 150 - this.width - this.height;
         this.id = 0;
     }
 
     draw(){
 
-        gameCTX.fillStyle= this.color;
-        gameCTX.fillRect(this.left,this.top,this.width,this.height);
+        // gameCTX.fillStyle= this.color;
+        // gameCTX.fillRect(this.left,this.top,this.width,this.height);
+        gameCTX.drawImage(this.img, this.left, this.top, this.width, this.height);
     }
 }
 
@@ -140,7 +178,7 @@ class Hook{
     /*
     *
     * */
-    constructor()
+    constructor(user)
     {
         this.maxLineLength = 800;
         this.length = 0;
@@ -151,17 +189,18 @@ class Hook{
         this.speed = this.maxLineLength / 2000; // anti lag berekening   : x aantal seconden 700/5000 * time
         this.tookObjects = [];
         this.hookPosition = 10;
+        this.user = user;
     }
 
     handle(time){
         this.stepSize = time * this.speed; // Hook speed
-
         /*
             controller voor de beweging van de hook
         * */
-        if(keysPressed['c']  && !keysPressed['x'] && !this.up){
+
+        if(keysPressed[this.user.rightButton]  && !keysPressed[this.user.downButton] && !this.up){
             this.hookPosition += this.stepSize;
-        }else if(keysPressed['z'] && !keysPressed['x'] && !this.up)
+        }else if(keysPressed[this.user.leftButton] && !keysPressed[this.user.downButton] && !this.up)
         {
             if(this.hookPosition >5)
             {
@@ -173,7 +212,7 @@ class Hook{
           If statement jungle om de hook de jusite richtign op te laten gaan
 
        */
-        if(keysPressed['x']){ // als de spatie is ingedrukt
+        if(keysPressed[this.user.downButton]){ // als de spatie is ingedrukt
             if(this.length > this.maxLineLength-this.stepSize) { // de line gaat terug als de max van 700 is berijkt anders gaat hij door
                 this.length = this.maxLineLength;
                 this.up = true;
@@ -207,7 +246,8 @@ class Hook{
 
                     // this.tookObjects[i].top = this.length;
                     // this.tookObjects[i].left = this.hookPosition;
-                    user.updateScore(this.tookObjects[i].value);
+                    this.user.updateScore(this.tookObjects[i].value);
+
 
                     for(var j=0;j<gameObjects.length; j++) {
                         if (!gameObjects[j]) continue;
